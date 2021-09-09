@@ -41,6 +41,9 @@ module.exports = {
             },
           ],
         },
+        nsis: {
+          allowToChangeInstallationDirectory: true
+        }
       },
     },
   },
