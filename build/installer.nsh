@@ -9,7 +9,7 @@
     !define VOICEVOX_DOWNLOAD_SIZE 2.7
     ; VOICEVOX size (GB)
     !define VOICEVOX_SIZE 5.7
-    ; space required for installation (including installer x2 and vOICEVOX)
+    ; space required for installation (including installer x2 and VOICEVOX)
     ; because of NSIS specification, mathematic operation must be one operation at a command.
     ; ref. https://nsis.sourceforge.io/mediawiki/index.php?title=Reference/!define&oldid=23418
     !define /math VOICEVOX_DOWNLOAD_SIZE_DUBLE ${VOICEVOX_DOWNLOAD_SIZE} * 2
