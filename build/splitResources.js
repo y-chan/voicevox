@@ -1,14 +1,12 @@
-const is_not_win = process.platform !== "win32";
-
-if (is_not_win) {
-  return;
-}
-
 /* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require("fs");
 const path = require("path");
 
 exports.default = async function (buildResult) {
+  const is_not_win = process.platform !== "win32";
+  if (is_not_win) {
+    return;
+  }
   const projectVersion = process.env.npm_package_version;
   if (projectVersion === undefined) {
     const ErrorMessage = "Project version is undefined.";
