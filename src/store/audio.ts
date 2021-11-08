@@ -16,6 +16,7 @@ import {
   AudioCommandMutations,
   AudioCommandStoreState,
   VoiceVoxStoreOptions,
+  IEngineConnectorFactoryActions,
 } from "./type";
 import { createUILockAction } from "./ui";
 import {
@@ -389,7 +390,7 @@ const audioStoreCreator = (
 
     actions: {
       START_WAITING_ENGINE: createUILockAction(
-        async ({ rootState, state, commit }) => {
+        async ({ state, commit, dispatch }) => {
           let engineState = state.engineState;
           for (let i = 0; i < 100; i++) {
             engineState = state.engineState;
@@ -398,9 +399,10 @@ const audioStoreCreator = (
             }
 
             try {
-              await _engineFactory
-                .instance(rootState.engineHost)
-                .versionVersionGet();
+              await dispatch("INVOKE_ENGINE_CONNECTOR", {
+                action: "versionVersionGet",
+                payload: [],
+              });
             } catch {
               await new Promise((resolve) => setTimeout(resolve, 1000));
               window.electron.logInfo("waiting engine...");
@@ -515,27 +517,35 @@ const audioStoreCreator = (
         commit("SET_AUDIO_QUERY", payload);
       },
       FETCH_ACCENT_PHRASES(
-        { rootState },
+        { dispatch },
         {
           text,
           styleId,
           isKana,
         }: { text: string; styleId: number; isKana?: boolean }
       ) {
-        return _engineFactory
-          .instance(rootState.engineHost)
-          .accentPhrasesAccentPhrasesPost({
-            text,
-            speaker: styleId,
-            isKana,
+        return (
+          dispatch("INVOKE_ENGINE_CONNECTOR", {
+            action: "accentPhrasesAccentPhrasesPost",
+            payload: [
+              // FIXME: ここでPayloadが各ActionのUnionになってしまっている
+              {
+                text,
+                speaker: styleId,
+                isKana,
+              },
+            ],
           })
-          .catch((error) => {
-            window.electron.logError(
-              error,
-              `Failed to fetch AccentPhrases for the text "${text}".`
-            );
-            throw error;
-          });
+            // payloadでUnionになっているように、ReturnValueもUnionになり、Promise<any>になってしまっている
+            .then(toDispatchResponse("accentPhrasesAccentPhrasesPost"))
+            .catch((error) => {
+              window.electron.logError(
+                error,
+                `Failed to fetch AccentPhrases for the text "${text}".`
+              );
+              throw error;
+            })
+        );
       },
       FETCH_MORA_DATA(
         { rootState },
@@ -1641,3 +1651,15 @@ export const audioCommandStore: VoiceVoxStoreOptions<
     },
   }),
 };
+
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
+
+const toDispatchResponse =
+  <T extends keyof IEngineConnectorFactoryActions>(_: T) =>
+  (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response: any
+  ): UnwrapPromise<ReturnType<IEngineConnectorFactoryActions[T]>> => {
+    _; // Unused回避のため
+    return response;
+  };
