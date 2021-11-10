@@ -67,6 +67,7 @@ module.exports = {
         },
         publish: {
           provider: "github",
+          owner: "y-chan",
           repo: "voicevox",
           vPrefixedTagName: false,
         },
