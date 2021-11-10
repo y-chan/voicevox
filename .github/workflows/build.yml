@@ -14,7 +14,7 @@ env:
 
   # FIXME: implement build with production resources in Hiroshiba/voicevox
   # Temporarily, skip uploading to GitHub Release (use Artifact instead)
-  SKIP_UPLOADING_RELEASE_ASSET: 1
+  SKIP_UPLOADING_RELEASE_ASSET: 0
 
 jobs:
   build-noengine-prepackage:
