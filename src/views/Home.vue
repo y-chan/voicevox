@@ -281,9 +281,11 @@ export default defineComponent({
     );
     const addAudioItem = async () => {
       const prevAudioKey = activeAudioKey.value;
-      let styleId: number | undefined = undefined;
+      let styleIds: number[] | undefined = undefined;
+      let morphRate: number | undefined = undefined;
       if (prevAudioKey !== undefined) {
-        styleId = store.state.audioItems[prevAudioKey].styleId;
+        styleIds = store.state.audioItems[prevAudioKey].styleIds;
+        morphRate = store.state.audioItems[prevAudioKey].morphRate;
       }
       let audioItem: AudioItem;
       let baseAudioItem: AudioItem | undefined = undefined;
@@ -295,7 +297,8 @@ export default defineComponent({
       //パラメータ引き継ぎがONの場合は話速等のパラメータを引き継いでテキスト欄を作成する
       //パラメータ引き継ぎがOFFの場合、baseAudioItemがundefinedになっているのでパラメータ引き継ぎは行われない
       audioItem = await store.dispatch("GENERATE_AUDIO_ITEM", {
-        styleId,
+        styleIds,
+        morphRate,
         baseAudioItem,
       });
 

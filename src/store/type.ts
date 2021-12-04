@@ -23,7 +23,8 @@ import { IEngineConnectorFactory } from "@/infrastructures/EngineConnector";
 
 export type AudioItem = {
   text: string;
-  styleId?: number;
+  styleIds?: number[];
+  morphRate?: number;
   query?: AudioQuery;
 };
 
@@ -135,7 +136,8 @@ type AudioStoreTypes = {
   GENERATE_AUDIO_ITEM: {
     action(payload: {
       text?: string;
-      styleId?: number;
+      styleIds?: number[];
+      morphRate?: number;
       baseAudioItem?: AudioItem;
     }): Promise<AudioItem>;
   };
@@ -211,8 +213,8 @@ type AudioStoreTypes = {
     action(payload: { text: string; styleId: number }): Promise<AudioQuery>;
   };
 
-  SET_AUDIO_STYLE_ID: {
-    mutation: { audioKey: string; styleId: number };
+  SET_AUDIO_STYLE_IDS: {
+    mutation: { audioKey: string; styleIds: number[]; morphRate?: number };
   };
 
   SET_ACCENT_PHRASES: {
@@ -343,13 +345,17 @@ type AudioCommandStoreTypes = {
     action(payload: { audioKey: string; text: string }): void;
   };
 
-  COMMAND_CHANGE_STYLE_ID: {
-    mutation: { styleId: number; audioKey: string } & (
-      | { update: "StyleId" }
+  COMMAND_CHANGE_STYLE_IDS: {
+    mutation: { styleIds: number[]; morphRate?: number; audioKey: string } & (
+      | { update: "StyleIds" }
       | { update: "AccentPhrases"; accentPhrases: AccentPhrase[] }
       | { update: "AudioQuery"; query: AudioQuery }
     );
-    action(payload: { audioKey: string; styleId: number }): void;
+    action(payload: {
+      audioKey: string;
+      styleIds: number[];
+      morphRate?: number;
+    }): void;
   };
 
   COMMAND_CHANGE_ACCENT: {
@@ -443,7 +449,7 @@ type AudioCommandStoreTypes = {
     action(payload: {
       prevAudioKey: string;
       texts: string[];
-      styleId: number;
+      styleIds: number[];
     }): string[];
   };
 };

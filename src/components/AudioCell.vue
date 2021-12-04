@@ -33,9 +33,9 @@
                   'selected-character-item'
                 "
                 @click="
-                  changeStyleId(
-                    getDefaultStyle(characterInfo.metas.speakerUuid).styleId
-                  )
+                  changeStyleIds([
+                    getDefaultStyle(characterInfo.metas.speakerUuid).styleId,
+                  ])
                 "
                 @mouseover="reassignSubMenuOpen(-1)"
                 @mouseleave="reassignSubMenuOpen.cancel()"
@@ -89,7 +89,7 @@
                         v-close-popup
                         active-class="selected-character-item"
                         :active="style.styleId === selectedStyle.styleId"
-                        @click="changeStyleId(style.styleId)"
+                        @click="changeStyleIds([style.styleId])"
                       >
                         <q-avatar rounded size="2rem" class="q-mr-md">
                           <q-img
@@ -185,17 +185,17 @@ export default defineComponent({
 
     const selectedCharacterInfo = computed(() =>
       store.state.characterInfos !== undefined &&
-      audioItem.value.styleId !== undefined
+      audioItem.value.styleIds !== undefined
         ? store.state.characterInfos.find((info) =>
             info.metas.styles.find(
-              (style) => style.styleId === audioItem.value.styleId
+              (style) => style.styleId === audioItem.value.styleIds?.[0]
             )
           )
         : undefined
     );
     const selectedStyle = computed(() =>
       selectedCharacterInfo.value?.metas.styles.find(
-        (style) => style.styleId === audioItem.value.styleId
+        (style) => style.styleId === audioItem.value.styleIds?.[0]
       )
     );
 
@@ -241,10 +241,11 @@ export default defineComponent({
       }
     };
 
-    const changeStyleId = (styleId: number) => {
-      store.dispatch("COMMAND_CHANGE_STYLE_ID", {
+    const changeStyleIds = (styleIds: number[], morphRate?: number) => {
+      store.dispatch("COMMAND_CHANGE_STYLE_IDS", {
         audioKey: props.audioKey,
-        styleId,
+        styleIds,
+        morphRate,
       });
     };
     const getDefaultStyle = (speakerUuid: string) => {
@@ -294,11 +295,11 @@ export default defineComponent({
             await pushAudioText();
           }
 
-          const styleId = audioItem.value.styleId;
-          if (styleId == undefined) throw new Error("styleId == undefined");
+          const styleIds = audioItem.value.styleIds;
+          if (styleIds == undefined) throw new Error("styleId == undefined");
           const audioKeys = await store.dispatch("COMMAND_PUT_TEXTS", {
             texts,
-            styleId,
+            styleIds,
             prevAudioKey,
           });
           if (audioKeys)
@@ -360,8 +361,9 @@ export default defineComponent({
 
     // 下にセルを追加
     const addCellBellow = async () => {
-      const styleId = store.state.audioItems[props.audioKey].styleId;
-      const audioItem: AudioItem = { text: "", styleId };
+      const styleIds = store.state.audioItems[props.audioKey].styleIds;
+      const morphRate = store.state.audioItems[props.audioKey].morphRate;
+      const audioItem: AudioItem = { text: "", styleIds, morphRate };
       await store.dispatch("COMMAND_REGISTER_AUDIO_ITEM", {
         audioItem,
         prevAudioKey: props.audioKey,
@@ -403,7 +405,7 @@ export default defineComponent({
       audioTextBuffer,
       setAudioTextBuffer,
       pushAudioText,
-      changeStyleId,
+      changeStyleIds,
       getDefaultStyle,
       setActiveAudioKey,
       save,
