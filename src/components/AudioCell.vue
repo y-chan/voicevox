@@ -7,118 +7,12 @@
       size="sm"
       class="absolute active-arrow"
     />
-    <q-btn flat class="q-pa-none character-button" :disable="uiLocked">
-      <!-- q-imgだとdisableのタイミングで点滅する -->
-      <img class="q-pa-none q-ma-none" :src="selectedStyle.iconPath" />
-      <q-menu
-        class="character-menu"
-        transition-show="none"
-        transition-hide="none"
-      >
-        <q-list>
-          <q-item
-            v-for="(characterInfo, characterIndex) in characterInfos"
-            :key="characterIndex"
-            class="q-pa-none"
-          >
-            <q-btn-group flat class="col full-width">
-              <q-btn
-                flat
-                no-caps
-                v-close-popup
-                class="col-grow"
-                :class="
-                  characterInfo.metas.speakerUuid ===
-                    selectedCharacterInfo.metas.speakerUuid &&
-                  'selected-character-item'
-                "
-                @click="
-                  changeStyleIds([
-                    getDefaultStyle(characterInfo.metas.speakerUuid).styleId,
-                  ])
-                "
-                @mouseover="reassignSubMenuOpen(-1)"
-                @mouseleave="reassignSubMenuOpen.cancel()"
-              >
-                <q-avatar rounded size="2rem" class="q-mr-md">
-                  <q-img
-                    no-spinner
-                    no-transition
-                    :ratio="1"
-                    :src="
-                      getDefaultStyle(characterInfo.metas.speakerUuid).iconPath
-                    "
-                  />
-                </q-avatar>
-                <div>{{ characterInfo.metas.speakerName }}</div>
-              </q-btn>
-
-              <!-- スタイルが2つ以上あるものだけ、スタイル選択ボタンを表示する-->
-              <template v-if="characterInfo.metas.styles.length >= 2">
-                <q-separator vertical />
-
-                <div
-                  class="flex items-center q-px-sm q-py-none cursor-pointer"
-                  :class="
-                    subMenuOpenFlags[characterIndex] && 'opened-character-item'
-                  "
-                  @mouseover="reassignSubMenuOpen(characterIndex)"
-                  @mouseleave="reassignSubMenuOpen.cancel()"
-                >
-                  <q-icon
-                    name="keyboard_arrow_right"
-                    color="grey-6"
-                    size="sm"
-                  />
-
-                  <q-menu
-                    no-parent-event
-                    anchor="top end"
-                    self="top start"
-                    transition-show="none"
-                    transition-hide="none"
-                    class="character-menu"
-                    v-model="subMenuOpenFlags[characterIndex]"
-                  >
-                    <q-list>
-                      <q-item
-                        v-for="(style, styleIndex) in characterInfo.metas
-                          .styles"
-                        :key="styleIndex"
-                        clickable
-                        v-close-popup
-                        active-class="selected-character-item"
-                        :active="style.styleId === selectedStyle.styleId"
-                        @click="changeStyleIds([style.styleId])"
-                      >
-                        <q-avatar rounded size="2rem" class="q-mr-md">
-                          <q-img
-                            no-spinner
-                            no-transition
-                            :ratio="1"
-                            :src="
-                              characterInfo.metas.styles[styleIndex].iconPath
-                            "
-                          />
-                        </q-avatar>
-                        <q-item-section v-if="style.styleName"
-                          >{{ characterInfo.metas.speakerName }} ({{
-                            style.styleName
-                          }})</q-item-section
-                        >
-                        <q-item-section v-else>{{
-                          characterInfo.metas.speakerName
-                        }}</q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </div>
-              </template>
-            </q-btn-group>
-          </q-item>
-        </q-list>
-      </q-menu>
-    </q-btn>
+    <character-menu-button
+      v-if="audioItem.styleIds !== undefined"
+      :selected-style-ids="audioItem.styleIds"
+      :disable="uiLocked"
+      :style-select-action="changeStyleIds"
+    />
     <q-input
       ref="textfield"
       filled
@@ -159,11 +53,13 @@
 import { computed, watch, defineComponent, ref } from "vue";
 import { useStore } from "@/store";
 import { AudioItem } from "@/store/type";
-import { QInput, debounce } from "quasar";
+import { QInput, useQuasar } from "quasar";
+import { CharacterInfo } from "@/type/preload";
+import CharacterMenuButton from "@/components/CharacterMenuButton.vue";
 
 export default defineComponent({
   name: "AudioCell",
-
+  components: { CharacterMenuButton },
   props: {
     audioKey: { type: String, required: true },
   },
@@ -183,32 +79,26 @@ export default defineComponent({
 
     const uiLocked = computed(() => store.getters.UI_LOCKED);
 
-    const selectedCharacterInfo = computed(() =>
-      store.state.characterInfos !== undefined &&
-      audioItem.value.styleIds !== undefined
-        ? store.state.characterInfos.find((info) =>
-            info.metas.styles.find(
-              (style) => style.styleId === audioItem.value.styleIds?.[0]
-            )
-          )
-        : undefined
-    );
-    const selectedStyle = computed(() =>
-      selectedCharacterInfo.value?.metas.styles.find(
-        (style) => style.styleId === audioItem.value.styleIds?.[0]
-      )
-    );
-
-    const subMenuOpenFlags = ref(
-      [...Array(characterInfos.value?.length)].map(() => false)
-    );
-
-    const reassignSubMenuOpen = debounce((idx: number) => {
-      if (subMenuOpenFlags.value[idx]) return;
-      const arr = [...Array(characterInfos.value?.length)].map(() => false);
-      arr[idx] = true;
-      subMenuOpenFlags.value = arr;
-    }, 100);
+    const selectedCharacterInfo = computed(() => {
+      if (
+        store.state.characterInfos !== undefined &&
+        audioItem.value.styleIds !== undefined
+      ) {
+        return audioItem.value.styleIds.map((styleId) => {
+          return store.state.characterInfos?.find((info) =>
+            info.metas.styles.find((style) => style.styleId === styleId)
+          ) as CharacterInfo;
+        });
+      }
+      return undefined;
+    });
+    const selectedStyle = computed(() => {
+      return selectedCharacterInfo.value?.map((info, i) => {
+        return info.metas.styles.find(
+          (style) => style.styleId === audioItem.value.styleIds?.[i]
+        );
+      });
+    });
 
     const isActiveAudioCell = computed(
       () => props.audioKey === store.getters.ACTIVE_AUDIO_KEY
@@ -248,18 +138,7 @@ export default defineComponent({
         morphRate,
       });
     };
-    const getDefaultStyle = (speakerUuid: string) => {
-      const characterInfo = characterInfos.value?.find(
-        (info) => info.metas.speakerUuid === speakerUuid
-      );
-      const defaultStyleId = store.state.defaultStyleIds.find(
-        (x) => x.speakerUuid === speakerUuid
-      )?.defaultStyleId;
 
-      return characterInfo?.metas.styles.find(
-        (style) => style.styleId === defaultStyleId
-      );
-    };
     const setActiveAudioKey = () => {
       store.dispatch("SET_ACTIVE_AUDIO_KEY", { audioKey: props.audioKey });
     };
@@ -399,14 +278,11 @@ export default defineComponent({
       nowGenerating,
       selectedCharacterInfo,
       selectedStyle,
-      subMenuOpenFlags,
-      reassignSubMenuOpen,
       isActiveAudioCell,
       audioTextBuffer,
       setAudioTextBuffer,
       pushAudioText,
       changeStyleIds,
-      getDefaultStyle,
       setActiveAudioKey,
       save,
       play,
@@ -475,24 +351,6 @@ export default defineComponent({
   :deep(input) {
     caret-color: colors.$display;
     color: colors.$display;
-  }
-}
-
-.character-menu {
-  .q-item {
-    color: colors.$display;
-  }
-  .q-btn-group {
-    > .q-btn:first-child > :deep(.q-btn__content) {
-      justify-content: flex-start;
-    }
-    > div:last-child:hover {
-      background-color: rgba(colors.$primary-rgb, 0.1);
-    }
-  }
-  .selected-character-item,
-  .opened-character-item {
-    background-color: rgba(colors.$primary-rgb, 0.2);
   }
 }
 </style>
