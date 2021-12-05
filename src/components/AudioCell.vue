@@ -12,7 +12,26 @@
       :selected-style-ids="audioItem.styleIds"
       :disable="uiLocked"
       :style-select-action="changeStyleIds"
-    />
+    >
+      <template #optionalItem>
+        <q-item class="q-pa-none">
+          <q-btn-group flat class="col full-width">
+            <q-btn
+              flat
+              no-caps
+              v-close-popup
+              class="col-grow"
+              :class="
+                selectedCharacterInfo?.length === 2 && 'selected-character-item'
+              "
+              @click="openMorphingSetting"
+            >
+              <div>モーフィング</div>
+            </q-btn>
+          </q-btn-group>
+        </q-item>
+      </template>
+    </character-menu-button>
     <q-input
       ref="textfield"
       filled
@@ -56,6 +75,9 @@ import { AudioItem } from "@/store/type";
 import { QInput, useQuasar } from "quasar";
 import { CharacterInfo } from "@/type/preload";
 import CharacterMenuButton from "@/components/CharacterMenuButton.vue";
+import MorphingSettingDialog, {
+  DialogResult,
+} from "@/components/MorphingSettingDialog.vue";
 
 export default defineComponent({
   name: "AudioCell",
@@ -68,6 +90,7 @@ export default defineComponent({
 
   setup(props, { emit }) {
     const store = useStore();
+    const $q = useQuasar();
     const characterInfos = computed(() => store.state.characterInfos);
     const audioItem = computed(() => store.state.audioItems[props.audioKey]);
     const nowPlaying = computed(
@@ -136,6 +159,18 @@ export default defineComponent({
         audioKey: props.audioKey,
         styleIds,
         morphRate,
+      });
+    };
+
+    const openMorphingSetting = () => {
+      $q.dialog({
+        component: MorphingSettingDialog,
+        componentProps: {
+          styleIds: audioItem.value.styleIds,
+          morphRate: audioItem.value.morphRate,
+        },
+      }).onOk(({ styleIds, morphRate }: DialogResult) => {
+        changeStyleIds(styleIds, morphRate);
       });
     };
 
@@ -283,6 +318,7 @@ export default defineComponent({
       setAudioTextBuffer,
       pushAudioText,
       changeStyleIds,
+      openMorphingSetting,
       setActiveAudioKey,
       save,
       play,
@@ -352,5 +388,9 @@ export default defineComponent({
     caret-color: colors.$display;
     color: colors.$display;
   }
+}
+
+.selected-character-item {
+  background-color: rgba(colors.$primary-rgb, 0.2);
 }
 </style>
