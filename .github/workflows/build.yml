@@ -144,19 +144,19 @@ jobs:
         with:
           node-version: "${{ steps.node-version.outputs.NODE_VERSION }}"
 
-      - name: Cache Node packages
-        uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ env.cache-version }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ env.cache-version }}-node-
+#      - name: Cache Node packages
+#        uses: actions/cache@master
+#        with:
+#          path: ~/.npm
+#          key: ${{ env.cache-version }}-node-${{ hashFiles('**/yarn.lock') }}
+#          restore-keys: |
+#            ${{ env.cache-version }}-node-
 
       - name: Cache Electron
         uses: actions/cache@master
         with:
           path: ${{ env.ELECTRON_CACHE }}
-          key: ${{ env.cache-version }}-${{ runner.os }}--electron-cache-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ env.cache-version }}-${{ runner.os }}--electron-cache-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ env.cache-version }}-${{ runner.os }}--electron-cache-
 
@@ -164,13 +164,13 @@ jobs:
         uses: actions/cache@master
         with:
           path: ${{ env.ELECTRON_BUILDER_CACHE }}
-          key: ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ env.cache-version }}-${{ runner.os }}--electron-builder-cache-
 
       - name: Install dependencies
         shell: bash
-        run: npm ci
+        run: yarn install
 
       - name: Show disk space (debug info)
         shell: bash
@@ -250,7 +250,7 @@ jobs:
 
       - name: Generate public/licenses.json
         shell: bash
-        run: npm run license:generate -- -o public/licenses.json
+        run: yarn license:generate -- -o public/licenses.json
 
       - name: Show disk space (debug info)
         shell: bash
@@ -278,7 +278,7 @@ jobs:
           LINUX_ARTIFACT_NAME: ${{ matrix.linux_artifact_name }}
           LINUX_EXECUTABLE_NAME: ${{ matrix.linux_executable_name }}
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
-        run: npm run electron:build_pnever -- --dir
+        run: yarn electron:build_pnever -- --dir
 
       - name: Reset Code Signing Envs
         if: startsWith(matrix.os, 'windows-') && github.event.inputs.code_signing == 'true'
@@ -370,21 +370,21 @@ jobs:
         with:
           node-version: "${{ steps.node-version.outputs.NODE_VERSION }}"
 
-      - name: Cache Node packages
-        uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ env.cache-version }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ env.cache-version }}-node-
+#      - name: Cache Node packages
+#        uses: actions/cache@master
+#        with:
+#          path: ~/.npm
+#          key: ${{ env.cache-version }}-node-${{ hashFiles('**/yarn.lock') }}
+#          restore-keys: |
+#            ${{ env.cache-version }}-node-
 
       - name: Install asar
         shell: bash
-        run: npm install -g asar
+        run: yarn global add asar
 
       - name: Install dependencies
         shell: bash
-        run: npm ci
+        run: yarn install
 
       - name: Show disk space (debug info)
         shell: bash
@@ -449,7 +449,7 @@ jobs:
           rm "${{ matrix.app_asar_dir }}/app.asar"
 
           mv voicevox_engine/voicevox_engine/licenses.json engine_licenses.json
-          npm run license:merge -- -o "${{ matrix.app_asar_dir }}/app/licenses.json" -i engine_licenses.json -i "${{ matrix.app_asar_dir }}/app/licenses.json"
+          yarn license:merge -- -o "${{ matrix.app_asar_dir }}/app/licenses.json" -i engine_licenses.json -i "${{ matrix.app_asar_dir }}/app/licenses.json"
 
           # Repack asar
           asar pack "${{ matrix.app_asar_dir }}/app" "${{ matrix.app_asar_dir }}/app.asar"
@@ -675,13 +675,13 @@ jobs:
         with:
           node-version: "${{ steps.node-version.outputs.NODE_VERSION }}"
 
-      - name: Cache Node packages
-        uses: actions/cache@master
-        with:
-          path: ~/.npm
-          key: ${{ env.cache-version }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ env.cache-version }}-node-
+#      - name: Cache Node packages
+#        uses: actions/cache@master
+#        with:
+#          path: ~/.npm
+#          key: ${{ env.cache-version }}-node-${{ hashFiles('**/yarn.lock') }}
+#          restore-keys: |
+#            ${{ env.cache-version }}-node-
 
       - name: Cache Electron
         uses: actions/cache@master
@@ -701,7 +701,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: npm ci
+        run: yarn install
 
       - name: Show disk space (debug info)
         shell: bash
@@ -729,14 +729,14 @@ jobs:
           NSIS_WEB_ARTIFACT_NAME: ${{ matrix.nsis_web_artifact_name }}
           LINUX_ARTIFACT_NAME: ${{ matrix.linux_artifact_name }}
           LINUX_EXECUTABLE_NAME: ${{ matrix.linux_executable_name }}
-        run: npm run electron:build_pnever -- --prepackaged "prepackage/"
+        run: yarn electron:build_pnever -- --prepackaged "prepackage/"
 
       - name: Build Electron (for macOS)
         if: endsWith(matrix.artifact_name, '-dmg') # macOS
         shell: bash
         env:
           MACOS_ARTIFACT_NAME: ${{ matrix.macos_artifact_name }}
-        run: npm run electron:build_pnever -- --prepackaged "prepackage/VOICEVOX.app"
+        run: yarn electron:build_pnever -- --prepackaged "prepackage/VOICEVOX.app"
 
       - name: Reset Code Signing Envs
         if: endsWith(matrix.artifact_name, '-nsis-web') && github.event.inputs.code_signing == 'true'

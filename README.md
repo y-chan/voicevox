@@ -23,7 +23,7 @@ yarn install
 Windowsの場合でもパスの区切り文字は`\`ではなく`/`なのでご注意ください。
 
 ```bash
-npm run electron:serve
+yarn electron:serve
 ```
 
 音声合成エンジンのリポジトリはこちらです <https://github.com/VOICEVOX/voicevox_engine>
@@ -36,14 +36,14 @@ Issue 側で取り組み始めたことを伝えるか、最初に Draft プル�
 ## ビルド
 
 ```bash
-npm run electron:build
+yarn electron:build
 ```
 
 ## テスト
 
 ```bash
-npm run test:unit
-npm run test:e2e
+yarn test:unit
+yarn test:e2e
 ```
 
 ## 依存ライブラリのライセンス情報の生成
@@ -51,8 +51,8 @@ npm run test:e2e
 ```bash
 # get licenses.json from voicevox_engine as engine_licenses.json
 
-npm run license:generate -- -o voicevox_licenses.json
-npm run license:merge -- -o public/licenses.json -i engine_licenses.json -i voicevox_licenses.json
+yarn license:generate -- -o voicevox_licenses.json
+yarn license:merge -- -o public/licenses.json -i engine_licenses.json -i voicevox_licenses.json
 ```
 
 ## コードフォーマット
@@ -60,7 +60,7 @@ npm run license:merge -- -o public/licenses.json -i engine_licenses.json -i voic
 コードのフォーマットを整えます。プルリクエストを送る前に実行してください。
 
 ```bash
-npm run fmt
+yarn fmt
 ```
 
 ## タイポチェック
@@ -81,7 +81,7 @@ typos
 Markdown の文法チェックを行います。
 
 ```bash
-npm run markdownlint
+yarn markdownlint
 ```
 
 ## Shellcheck
@@ -106,7 +106,7 @@ $(npm bin)/openapi-generator-cli generate \
     -o src/openapi/ \
     --additional-properties=modelPropertyNaming=camelCase,supportsES6=true,withInterfaces=true,typescriptThreePlus=true
 
-npm run fmt
+yarn fmt
 ```
 
 ## ライセンス
