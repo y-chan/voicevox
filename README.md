@@ -13,7 +13,7 @@ Node.js をインストール後、[このリポジトリ](https://github.com/VO
 Fork して `git clone` し、次のコマンドを実行してください。
 
 ```bash
-npm ci
+yarn install
 ```
 
 ## 実行
